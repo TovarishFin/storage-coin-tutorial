@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "bignumber.js": "git+https://github.com/frozeman/bignumber.js-nolookahead.git",
+    "chalk": "^2.4.1",
+    "openzeppelin-solidity": "^1.10.0",
+    "truffle-flattener": "^1.2.5"
+  }
+}

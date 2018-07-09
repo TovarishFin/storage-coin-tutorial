@@ -16,16 +16,24 @@ describe('when accessing StorageCoin storage', () => {
     const symbol = 'STC'
 
     before('setup contract', async () => {
-      stc = await StorageCoin.new(name, symbol, totalSupply)
+      stc = await StorageCoin.new(name, symbol, totalSupply, { from: owner })
       simpleStorage = await getAllSimpleStorage(stc.address)
+      console.log(simpleStorage)
     })
 
     it('should have totalSupply in slot 1', async () => {
-
+      assert.equal(
+        new BigNumber(simpleStorage[1].data).toString(),
+        totalSupply.toString(),
+        'storage slot 1 should match totalSupply'
+      )
     })
 
     it('should have paused in slot 3', async () => {
-
+      assert.equal(
+        '0x' + simpleStorage[3].slice(5),
+        owner
+      )
     })
 
     it('should have owner in slot 3 as well', async () => {

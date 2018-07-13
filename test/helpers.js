@@ -1,4 +1,10 @@
 const BigNumber = require('bignumber.js')
+const leftPad = require('left-pad')
+
+const getTrimmedStringFromStorage = hex =>
+  web3.toAscii(
+    hex.slice(0, new BigNumber('0x' + hex.slice(-2)).add(2).toNumber())
+  )
 
 const getAllSimpleStorage = async addr => {
   let slot = 0
@@ -22,36 +28,8 @@ const getAllSimpleStorage = async addr => {
   return simpleStorage
 }
 
-const findMappingStorage = async (address, key, startSlot, endSlot) => {
-  const bigStart = startSlot.add ? startSlot : new BigNumber(startSlot)
-  const bigEnd = endSlot.add ? endSlot : new BigNumber(endSlot)
-
-  for (
-    let mappingSlot = bigStart;
-    mappingSlot.lt(bigEnd);
-    mappingSlot = mappingSlot.add(1)
-  ) {
-    const mappingValueSlot = getMappingSlot(mappingSlot.toString(), key)
-    const mappingValueStorage = await web3.eth.getStorageAt(
-      address,
-      mappingValueSlot
-    )
-    if (mappingValueStorage != '0x00') {
-      return {
-        mappingValueStorage,
-        mappingValueSlot,
-        mappingSlot
-      }
-    }
-  }
-
-  return null
-}
-
-const standardizeInput = input => {
-  input = input.replace('0x', '')
-  return input.length >= 64 ? input : '0'.repeat(64 - input.length) + input
-}
+const standardizeInput = input =>
+  leftPad(web3.toHex(input).replace('0x', ''), 64, '0')
 
 const getMappingSlot = (mappingSlot, key) => {
   const mappingSlotPadded = standardizeInput(mappingSlot)
@@ -84,6 +62,32 @@ const getNestedMappingStorage = async (address, mappingSlot, key, key2) => {
     nestedMappingValueSlot,
     nestedMappingValueStorage
   }
+}
+
+const findMappingStorage = async (address, key, startSlot, endSlot) => {
+  const bigStart = startSlot.add ? startSlot : new BigNumber(startSlot)
+  const bigEnd = endSlot.add ? endSlot : new BigNumber(endSlot)
+
+  for (
+    let mappingSlot = bigStart;
+    mappingSlot.lt(bigEnd);
+    mappingSlot = mappingSlot.add(1)
+  ) {
+    const mappingValueSlot = getMappingSlot(mappingSlot.toString(), key)
+    const mappingValueStorage = await web3.eth.getStorageAt(
+      address,
+      mappingValueSlot
+    )
+    if (mappingValueStorage != '0x00') {
+      return {
+        mappingValueStorage,
+        mappingValueSlot,
+        mappingSlot
+      }
+    }
+  }
+
+  return null
 }
 
 const findNestedMappingStorage = async (
@@ -123,6 +127,7 @@ const findNestedMappingStorage = async (
 }
 
 module.exports = {
+  getTrimmedStringFromStorage,
   getAllSimpleStorage,
   findMappingStorage,
   getMappingSlot,
